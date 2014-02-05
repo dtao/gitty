@@ -2,6 +2,13 @@
 <html>
   <head>
     <title>Gitty</title>
+    <link rel="stylesheet" type="text/css" href="http://cdnjs.cloudflare.com/ajax/libs/codemirror/3.21.0/codemirror.css" />
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/codemirror/3.21.0/codemirror.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/codemirror/3.21.0/mode/xml/xml.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/codemirror/3.21.0/mode/htmlmixed/htmlmixed.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/codemirror/3.21.0/mode/css/css.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/codemirror/3.21.0/mode/javascript/javascript.js"></script>
+
     <style type="text/css">
       body {
         font-family: "Open Sans", Helvetica, Arial, sans-serif;
@@ -67,8 +74,15 @@
         background-color: #fee;
       }
 
-      textarea {
-        width: 100%;
+      .CodeMirror {
+        font-family: "Source Code Pro", Consolas, Inconsolata, monospace;
+        border: 1px solid #eee;
+        height: auto;
+      }
+
+      .CodeMirror-scroll {
+        overflow-y: hidden;
+        overflow-x: auto;
       }
     </style>
 
@@ -193,7 +207,19 @@
             mainArea.innerHTML = '';
             var textarea = insertElement(mainArea, 'TEXTAREA');
             textarea.value = text;
+
+            CodeMirror.fromTextArea(textarea, {
+              mode: guessCodeMirrorMode(relativePath)
+            });
           });
+        }
+
+        function guessCodeMirrorMode(fileName) {
+          switch (path.extname(fileName).toLowerCase()) {
+            case '.html': return 'htmlmixed';
+            case '.css': return 'css';
+            default: return 'javscript';
+          }
         }
       });
     </script>
