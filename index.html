@@ -2,7 +2,6 @@
 <html>
   <head>
     <title>Gitty</title>
-
     <style type="text/css">
       body {
         font-family: "Open Sans", Helvetica, Arial, sans-serif;
@@ -13,8 +12,9 @@
         top: 0;
         left: 0;
         right: 0;
-        height: 64px;
+        height: 60px;
         padding: 0 15px;
+        border-bottom: 4px solid #bbb;
         white-space: nowrap;
         text-overflow: ellipsis;
       }
@@ -66,10 +66,16 @@
       pre.error {
         background-color: #fee;
       }
+
+      textarea {
+        width: 100%;
+      }
     </style>
 
     <script>
-      var spawn = require('child_process').spawn;
+      var fs    = require('fs'),
+          path  = require('path'),
+          spawn = require('child_process').spawn;
 
       window.addEventListener('load', function() {
         var navLinks = document.querySelectorAll('body > nav > ul > li > a'),
@@ -84,7 +90,28 @@
 
           files: {
             init: function files() {
-              runCommand('ls');
+              runCommandThen('ls', [], function(data) {
+                var list = insertElement(mainArea, 'UL');
+
+                forEach(data.split('\n'), function(line) {
+                  // Skip blank lines.
+                  if ((/^\s*$/).test(line)) {
+                    return;
+                  }
+
+                  var item = insertElement(list, 'LI'),
+                      link = insertElement(item, 'A');
+
+                  // Yeah yeah, I know... boo hoo.
+                  link.setAttribute('href', 'javascript:void(0);');
+
+                  link.addEventListener('click', function() {
+                    openFile(line);
+                  });
+
+                  link.textContent = line;
+                });
+              });
             }
           }
         };
@@ -102,30 +129,70 @@
           return Array.prototype.forEach.call(collection, fn);
         }
 
+        function peek(collection) {
+          return collection[collection.length - 1];
+        }
+
         function visitSection(section) {
           section = sections[section];
           mainArea.innerHTML = '';
           section.init();
         }
 
-        function runCommand(command, args) {
-          args || (args = []);
+        function insertElement(parent, name, className) {
+          var element = document.createElement(name);
+          if (className) {
+            element.className = className;
+          }
+          parent.appendChild(element);
+          return element;
+        }
+
+        function runCommandThen(command, args, callbacks) {
+          args      || (args = []);
+          callbacks || (callbacks = {});
+
+          if (typeof callbacks === 'function') {
+            callbacks = { stdout: callbacks };
+          }
 
           var proc = spawn(command, args, {
             cwd: process.env['PWD']
           });
 
-          proc.stdout.on('data', function(data) {
-            var pre = document.createElement('PRE');
-            pre.textContent = data;
-            mainArea.appendChild(pre);
-          });
+          proc.stdout.setEncoding('utf8');
+          proc.stdout.on('data', callbacks.stdout || function() {});
 
-          proc.stderr.on('data', function(data) {
-            var pre = document.createElement('PRE');
-            pre.className = 'error';
-            pre.textContent = data;
-            mainArea.appendChild(pre);
+          proc.stderr.setEncoding('utf8');
+          proc.stderr.on('data', callbacks.stderr || function() {});
+        }
+
+        function runCommand(command, args) {
+          runCommandThen(command, args, {
+            stdout: function(data) {
+              var pre = insertElement(mainArea, 'PRE');
+              pre.textContent = data;
+            },
+
+            stderr: function(data) {
+              var pre = insertElement(mainArea, 'PRE', 'error');
+              pre.textContent = data;
+            }
+          });
+        }
+
+        function openFile(relativePath) {
+          var absolutePath = path.join(process.env['PWD'], relativePath);
+
+          fs.readFile(absolutePath, 'utf8', function(err, text) {
+            if (err) {
+              console.error(err);
+              return;
+            }
+
+            mainArea.innerHTML = '';
+            var textarea = insertElement(mainArea, 'TEXTAREA');
+            textarea.value = text;
           });
         }
       });

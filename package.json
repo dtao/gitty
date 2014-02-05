@@ -1,4 +1,10 @@
 {
   "name": "gitty",
-  "main": "index.html"
+  "main": "index.html",
+  "dependencies": {
+    "codemirror": ">= 3.21.0",
+    "lazy.js": ">= 0.3.2"
+  },
+  "window": {
+  }
 }
