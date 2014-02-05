@@ -8,34 +8,23 @@ window.addEventListener('load', function() {
 
   var sections = {
     stage: {
-      init: function init() {
+      init: function initStage() {
         runCommand('git', ['status']);
       }
     },
 
+    diff: {
+      init: function initDiff() {
+        runCommandThen('git', ['diff'], function(data) {
+          renderInCodeMirror(data, { mode: 'diff' });
+        });
+      }
+    },
+
     files: {
-      init: function files() {
+      init: function initFiles() {
         runCommandThen('ls', [], function(data) {
-          var list = insertElement(mainArea, 'UL');
-
-          forEach(data.split('\n'), function(line) {
-            // Skip blank lines.
-            if ((/^\s*$/).test(line)) {
-              return;
-            }
-
-            var item = insertElement(list, 'LI'),
-                link = insertElement(item, 'A');
-
-            // Yeah yeah, I know... boo hoo.
-            link.setAttribute('href', 'javascript:void(0);');
-
-            link.addEventListener('click', function() {
-              openFile(line);
-            });
-
-            link.textContent = line;
-          });
+          listFiles(data.split('\n'));
         });
       }
     }
@@ -62,6 +51,10 @@ window.addEventListener('load', function() {
     section = sections[section];
     mainArea.innerHTML = '';
     section.init();
+  }
+
+  function displayError(message) {
+    console.error(message);
   }
 
   function insertElement(parent, name, className) {
@@ -106,23 +99,76 @@ window.addEventListener('load', function() {
     });
   }
 
-  function openFile(relativePath) {
-    var absolutePath = path.join(process.env['PWD'], relativePath);
+  function listFiles(files, directory) {
+    mainArea.innerHTML = '';
 
-    fs.readFile(absolutePath, 'utf8', function(err, text) {
-      if (err) {
-        console.error(err);
+    var list = insertElement(mainArea, 'UL');
+
+    forEach(files, function(file) {
+      // Skip blank filenames.
+      if ((/^\s*$/).test(file)) {
         return;
       }
 
-      mainArea.innerHTML = '';
-      var textarea = insertElement(mainArea, 'TEXTAREA');
-      textarea.value = text;
+      var item = insertElement(list, 'LI'),
+          link = insertElement(item, 'A');
 
-      CodeMirror.fromTextArea(textarea, {
-        mode: guessCodeMirrorMode(relativePath)
+      // Yeah yeah, I know... boo hoo.
+      link.setAttribute('href', 'javascript:void(0);');
+
+      link.addEventListener('click', function() {
+        openFile(file, directory);
+      });
+
+      link.textContent = file;
+    });
+  }
+
+  function openFile(relativePath, directory) {
+    directory || (directory = process.env['PWD']);
+
+    var absolutePath = path.join(directory, relativePath);
+
+    fs.stat(absolutePath, function(err, stats) {
+      if (err) {
+        displayError(err);
+        return;
+      }
+
+      if (stats.isDirectory()) {
+        fs.readdir(absolutePath, function(err, files) {
+          if (err) {
+            displayError(err);
+            return;
+          }
+
+          listFiles(files, absolutePath);
+        });
+
+        return;
+      }
+
+      fs.readFile(absolutePath, 'utf8', function(err, text) {
+        if (err) {
+          displayError(err);
+          return;
+        }
+
+        renderInCodeMirror(text, {
+          mode: guessCodeMirrorMode(absolutePath)
+        });
       });
     });
+  }
+
+  function renderInCodeMirror(content, options) {
+    options || (options = {});
+
+    mainArea.innerHTML = '';
+    var textarea = insertElement(mainArea, 'TEXTAREA');
+    textarea.value = content;
+
+    return CodeMirror.fromTextArea(textarea, options);
   }
 
   function guessCodeMirrorMode(fileName) {
