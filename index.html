@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Gitty</title>
+
+    <style type="text/css">
+      body {
+        font-family: "Open Sans", Helvetica, Arial, sans-serif;
+      }
+
+      body > header {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 64px;
+        padding: 0 15px;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+
+      body > header > h1 {
+        font-size: 48pt;
+        line-height: 64px;
+        margin: 0 auto;
+        padding: 0;
+      }
+
+      body > nav {
+        position: absolute;
+        top: 64px;
+        left: 0;
+        width: 200px;
+        padding: 0 15px;
+      }
+
+      body > nav > ul {
+        list-style: none;
+        padding-left: 0;
+      }
+
+      body > nav > ul > li > a {
+        display: block;
+        color: #888;
+        padding: 5px 15px;
+        text-decoration: none;
+      }
+
+      body > nav > ul > li > a:hover {
+        background-color: #def;
+        color: #000;
+      }
+
+      main {
+        position: absolute;
+        top: 64px;
+        left: 230px;
+        right: 0;
+        padding: 0 15px;
+      }
+
+      h1 small {
+        color: #777;
+      }
+
+      pre.error {
+        background-color: #fee;
+      }
+    </style>
+
+    <script>
+      var spawn = require('child_process').spawn;
+
+      window.addEventListener('load', function() {
+        var navLinks = document.querySelectorAll('body > nav > ul > li > a'),
+            mainArea = document.querySelector('body > main');
+
+        var sections = {
+          stage: {
+            init: function init() {
+              runCommand('git', ['status']);
+            }
+          },
+
+          files: {
+            init: function files() {
+              runCommand('ls');
+            }
+          }
+        };
+
+        forEach(navLinks, function(link) {
+          link.addEventListener('click', function(e) {
+            e.preventDefault();
+
+            var section = link.getAttribute('href').substring(1);
+            visitSection(section);
+          });
+        });
+
+        function forEach(collection, fn) {
+          return Array.prototype.forEach.call(collection, fn);
+        }
+
+        function visitSection(section) {
+          section = sections[section];
+          mainArea.innerHTML = '';
+          section.init();
+        }
+
+        function runCommand(command, args) {
+          args || (args = []);
+
+          var proc = spawn(command, args, {
+            cwd: process.env['PWD']
+          });
+
+          proc.stdout.on('data', function(data) {
+            var pre = document.createElement('PRE');
+            pre.textContent = data;
+            mainArea.appendChild(pre);
+          });
+
+          proc.stderr.on('data', function(data) {
+            var pre = document.createElement('PRE');
+            pre.className = 'error';
+            pre.textContent = data;
+            mainArea.appendChild(pre);
+          });
+        }
+      });
+    </script>
+  </head>
+
+  <body>
+    <header>
+        <h1>
+            Gitty
+            <small>Node <script>document.write(process.version)</script></small>
+        </h1>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="#stage">Stage</a></li>
+            <li><a href="#files">Files</a></li>
+        </ul>
+    </nav>
+
+    <main></main>
+  </body>
+</html>
