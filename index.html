@@ -48,9 +48,11 @@
         </section>
 
         <section id="files" ng-show="isCurrentSection('files')">
-            <ul>
+            <pre ng-if="!!currentFile">{{currentFile.content}}</pre>
+
+            <ul ng-if="!currentFile">
                 <li ng-repeat="file in files">
-                    <a href="#">{{file}}</a>
+                    <a class="{{file.type}}" href="{{file.path}}" ng-click="openFile(file, $event)">{{file.name}}</a>
                 </li>
             </ul>
         </section>

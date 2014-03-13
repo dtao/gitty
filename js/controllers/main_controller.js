@@ -8,6 +8,12 @@ function MainController($scope) {
       PWD       = process.env['PWD'],
       DIRECTORY = ARGV[0] ? path.resolve(PWD, ARGV[0]) : PWD;
 
+  // Initialize scope
+  $scope.stage       = null;
+  $scope.diff        = null;
+  $scope.files       = [];
+  $scope.currentFile = null;
+
   runCommand('git', ['status'], function(output) {
     $scope.stage = output;
   });
@@ -17,7 +23,7 @@ function MainController($scope) {
   });
 
   runCommand('ls', [], function(output) {
-    $scope.files = output.split('\n');
+    $scope.files = readFiles(output, DIRECTORY);
   });
 
   function runCommand(command, args, callbacks) {
@@ -37,78 +43,67 @@ function MainController($scope) {
 
     proc.stderr.setEncoding('utf8');
     proc.stderr.on('data', callbacks.stderr || function() {});
-  }
 
-  function listFiles(files, directory) {
-    mainArea.innerHTML = '';
-
-    var list = insertElement(mainArea, 'UL');
-
-    forEach(files, function(file) {
-      // Skip blank filenames.
-      if ((/^\s*$/).test(file)) {
-        return;
-      }
-
-      var item = insertElement(list, 'LI'),
-          link = insertElement(item, 'A');
-
-      // Yeah yeah, I know... boo hoo.
-      link.setAttribute('href', 'javascript:void(0);');
-
-      link.addEventListener('click', function() {
-        openFile(file, directory);
-      });
-
-      link.textContent = file;
+    proc.stdout.on('end', function() {
+      $scope.$apply();
     });
   }
 
-  function openFile(relativePath, directory) {
-    directory || (directory = DIRECTORY);
+  function readFiles(files, directory) {
+    if (typeof files === 'string') {
+      files = files.split('\n');
+    }
 
-    var absolutePath = path.join(directory, relativePath);
+    files.forEach(function(line, i) {
+      var filePath = path.join(directory, line),
+          stats    = fs.statSync(filePath);
 
-    fs.stat(absolutePath, function(err, stats) {
-      if (err) {
-        displayError(err);
-        return;
-      }
+      files[i] = {
+        type: stats.isDirectory() ? 'folder' : 'file',
+        path: filePath,
+        name: line
+      };
+    });
 
-      if (stats.isDirectory()) {
-        fs.readdir(absolutePath, function(err, files) {
-          if (err) {
-            displayError(err);
-            return;
-          }
+    return files;
+  }
 
-          listFiles(files, absolutePath);
-        });
+  function openFile(file, e) {
+    if (e) {
+      e.preventDefault();
+    }
 
-        return;
-      }
+    $scope.currentFile = null;
 
-      fs.readFile(absolutePath, 'utf8', function(err, text) {
+    if (file.type === 'folder') {
+      fs.readdir(file.path, function(err, files) {
         if (err) {
           displayError(err);
           return;
         }
 
-        renderInCodeMirror(text, {
-          mode: guessCodeMirrorMode(absolutePath)
-        });
+        $scope.files = readFiles(files, file.path);
+        $scope.$apply();
       });
+
+      return;
+    }
+
+    fs.readFile(file.path, 'utf8', function(err, text) {
+      if (err) {
+        displayError(err);
+        return;
+      }
+
+      $scope.currentFile = {
+        path: file.path,
+        name: file.name,
+        type: guessCodeMirrorMode(file.name),
+        content: text
+      };
+
+      $scope.$apply();
     });
-  }
-
-  function renderInCodeMirror(content, options) {
-    options || (options = {});
-
-    mainArea.innerHTML = '';
-    var textarea = insertElement(mainArea, 'TEXTAREA');
-    textarea.value = content;
-
-    return CodeMirror.fromTextArea(textarea, options);
   }
 
   function guessCodeMirrorMode(fileName) {
@@ -118,6 +113,9 @@ function MainController($scope) {
       default: return 'javascript';
     }
   }
+
+  // Expose methods to the UI
+  $scope.openFile = openFile;
 }
 
 MainController.$inject = ['$scope'];
