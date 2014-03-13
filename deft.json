@@ -1,6 +1,7 @@
 {
   "destination": {
-    "css": "css/lib"
+    "css": "css/lib",
+    "scss": "css/lib"
   },
 
   "dependencies": [

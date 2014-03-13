@@ -1,0 +1,48 @@
+@import "lib/bootstrap";
+
+body {
+  @extend .container;
+
+  width: 100%;
+
+  & > header {
+    @extend .page-header;
+  }
+}
+
+body > nav {
+  position: absolute;
+  left: 0;
+  width: 200px;
+  padding: 0 15px;
+
+  & > ul {
+    @extend .nav, .nav-stacked;
+  }
+}
+
+body > main {
+  position: absolute;
+  left: 230px;
+  right: 0;
+  padding: 0 15px;
+}
+
+h1 small {
+  color: #777;
+}
+
+pre.error {
+  background-color: #fee;
+}
+
+.CodeMirror {
+  font-family: "Source Code Pro", Consolas, Inconsolata, monospace;
+  border: 1px solid #eee;
+  height: auto;
+}
+
+.CodeMirror-scroll {
+  overflow-y: hidden;
+  overflow-x: auto;
+}

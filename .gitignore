@@ -1,3 +1,5 @@
 app.nw
+.sass-cache/
+css/*.css
 css/lib/
 node_modules/
