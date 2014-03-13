@@ -36,6 +36,10 @@ body > main {
   }
 }
 
+a {
+  cursor: pointer;
+}
+
 .CodeMirror {
   font-family: "Source Code Pro", Consolas, Inconsolata, monospace;
   border: 1px solid #eee;

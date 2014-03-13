@@ -27,13 +27,13 @@
     <nav ng-controller="NavController">
         <ul>
             <li class="{{sectionClass('stage')}}">
-                <a href="#stage" ng-click="showSection('stage')">Stage</a>
+                <a ng-click="showSection('stage')">Stage</a>
             </li>
             <li class="{{sectionClass('diff')}}">
-                <a href="#diff" ng-click="showSection('diff')">Diff</a>
+                <a ng-click="showSection('diff')">Diff</a>
             </li>
             <li class="{{sectionClass('files')}}">
-                <a href="#files" ng-click="showSection('files')">Files</a>
+                <a ng-click="showSection('files')">Files</a>
             </li>
         </ul>
     </nav>
@@ -56,7 +56,7 @@
 
             <ul ng-if="!currentFile">
                 <li ng-repeat="file in files">
-                    <a class="{{file.type}}" href="{{file.path}}" ng-click="openFile(file, $event)">{{file.name}}</a>
+                    <a class="{{file.type}}" ng-click="openFile(file, $event)">{{file.name}}</a>
                 </li>
             </ul>
         </section>
