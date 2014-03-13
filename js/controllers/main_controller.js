@@ -9,10 +9,11 @@ function MainController($scope) {
       DIRECTORY = ARGV[0] ? path.resolve(PWD, ARGV[0]) : PWD;
 
   // Initialize scope
-  $scope.stage       = null;
-  $scope.diff        = null;
-  $scope.files       = [];
-  $scope.currentFile = null;
+  $scope.stage         = null;
+  $scope.diff          = null;
+  $scope.files         = [];
+  $scope.currentFolder = DIRECTORY;
+  $scope.currentFile   = null;
 
   runCommand('git', ['status'], function(output) {
     $scope.stage = output;
@@ -76,16 +77,7 @@ function MainController($scope) {
     $scope.currentFile = null;
 
     if (file.type === 'folder') {
-      fs.readdir(file.path, function(err, files) {
-        if (err) {
-          displayError(err);
-          return;
-        }
-
-        $scope.files = readFiles(files, file.path);
-        $scope.$apply();
-      });
-
+      openFolder(file.path);
       return;
     }
 
@@ -106,6 +98,36 @@ function MainController($scope) {
     });
   }
 
+  function openFolder(folderPath) {
+    fs.readdir(folderPath, function(err, files) {
+      if (err) {
+        displayError(err);
+        return;
+      }
+
+      $scope.currentFolder = folderPath;
+      $scope.files = readFiles(files, folderPath);
+      $scope.$apply();
+    });
+  }
+
+  function upToFolder() {
+    if ($scope.currentFile) {
+      $scope.currentFile = null;
+      return;
+    }
+
+    if (atRootFolder()) {
+      return;
+    }
+
+    openFolder(path.dirname($scope.currentFolder));
+  }
+
+  function atRootFolder() {
+    return $scope.currentFolder === DIRECTORY && !$scope.currentFile;
+  }
+
   function guessCodeMirrorMode(fileName) {
     switch (path.extname(fileName).toLowerCase()) {
       case '.html': return 'htmlmixed';
@@ -116,6 +138,8 @@ function MainController($scope) {
 
   // Expose methods to the UI
   $scope.openFile = openFile;
+  $scope.upToFolder = upToFolder;
+  $scope.atRootFolder = atRootFolder;
 }
 
 MainController.$inject = ['$scope'];

@@ -48,7 +48,11 @@
         </section>
 
         <section id="files" ng-show="isCurrentSection('files')">
-            <pre ng-if="!!currentFile">{{currentFile.content}}</pre>
+            <a ng-if="!atRootFolder()" ng-click="upToFolder()">Back</a>
+
+            <div ng-if="!!currentFile">
+                <pre>{{currentFile.content}}</pre>
+            </div>
 
             <ul ng-if="!currentFile">
                 <li ng-repeat="file in files">
