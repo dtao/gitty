@@ -8,5 +8,9 @@
   "devDependencies": {
     "deft": "~0.2.0"
   },
-  "window": {}
+  "window": {
+    "min_height": 768,
+    "min_width": 1024,
+    "position": "center"
+  }
 }
