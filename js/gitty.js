@@ -1,6 +1,11 @@
 var fs    = require('fs'),
     path  = require('path'),
-    spawn = require('child_process').spawn;
+    spawn = require('child_process').spawn,
+    gui   = require('nw.gui');
+
+var ARGV      = gui.App.argv,
+    PWD       = process.env['PWD'],
+    DIRECTORY = ARGV[0] ? path.resolve(PWD, ARGV[0]) : PWD;
 
 window.addEventListener('load', function() {
   var navLinks = document.querySelectorAll('body > nav > ul > li > a'),
@@ -75,7 +80,7 @@ window.addEventListener('load', function() {
     }
 
     var proc = spawn(command, args, {
-      cwd: process.env['PWD']
+      cwd: DIRECTORY
     });
 
     proc.stdout.setEncoding('utf8');
@@ -125,7 +130,7 @@ window.addEventListener('load', function() {
   }
 
   function openFile(relativePath, directory) {
-    directory || (directory = process.env['PWD']);
+    directory || (directory = DIRECTORY);
 
     var absolutePath = path.join(directory, relativePath);
 
