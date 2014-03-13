@@ -1,0 +1,3 @@
+#!/bin/sh
+
+zip app.nw index.html css/gitty.css js/gitty.js package.json
