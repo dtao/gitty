@@ -2,4 +2,5 @@ app.nw
 .sass-cache/
 css/*.css
 css/lib/
+fonts/
 node_modules/

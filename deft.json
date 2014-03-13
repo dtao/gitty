@@ -1,12 +1,24 @@
 {
   "destination": {
     "css": "css/lib",
-    "scss": "css/lib"
+    "scss": "css/lib",
+    "eot": "fonts",
+    "woff": "fonts",
+    "ttf": "fonts",
+    "svg": "fonts"
   },
 
   "dependencies": [
     ["http://netdna.bootstrapcdn.com/bootswatch/3.1.1/lumen/", {
       "bootstrap.min.css": "bootstrap.scss"
+    }],
+
+    ["http://netdna.bootstrapcdn.com/font-awesome/4.0.3/", {
+      "css/font-awesome.min.css": "font-awesome.scss",
+      "fonts/fontawesome-webfont.eot": "fontawesome-webfont.eot",
+      "fonts/fontawesome-webfont.woff": "fontawesome-webfont.woff",
+      "fonts/fontawesome-webfont.ttf": "fontawesome-webfont.ttf",
+      "fonts/fontawesome-webfont.svg": "fontawesome-webfont.svg"
     }]
   ]
 }

@@ -1,3 +1,4 @@
+@import "lib/font-awesome";
 @import "lib/bootstrap";
 
 body {
@@ -33,6 +34,15 @@ body > main {
 
   & > li {
     @extend .list-group-item;
+
+    a:before {
+      @extend .fa;
+
+      width: 24px;
+    }
+
+    a.file:before { @extend .fa-file; }
+    a.folder:before { @extend .fa-folder-o; }
   }
 }
 
