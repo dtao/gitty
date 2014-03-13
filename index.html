@@ -11,6 +11,7 @@
     <script src="http://cdnjs.cloudflare.com/ajax/libs/codemirror/3.21.0/mode/css/css.js"></script>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/codemirror/3.21.0/mode/javascript/javascript.js"></script>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/codemirror/3.21.0/mode/diff/diff.js"></script>
+    <script src="js/directives/gitty_code_mirror.js"></script>
     <script src="js/controllers/nav_controller.js"></script>
     <script src="js/controllers/main_controller.js"></script>
     <script src="js/gitty.js"></script>
@@ -44,14 +45,14 @@
         </section>
 
         <section id="diff" ng-show="isCurrentSection('diff')">
-            <pre>{{diff}}</pre>
+            <textarea gitty-code-mirror="diff">{{diff}}</textarea>
         </section>
 
         <section id="files" ng-show="isCurrentSection('files')">
             <a ng-if="!atRootFolder()" ng-click="upToFolder()">Back</a>
 
             <div ng-if="!!currentFile">
-                <pre>{{currentFile.content}}</pre>
+                <textarea gitty-code-mirror="{{currentFile.type}}">{{currentFile.content}}</textarea>
             </div>
 
             <ul ng-if="!currentFile">
