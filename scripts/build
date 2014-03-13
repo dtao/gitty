@@ -1,4 +1,4 @@
 #!/bin/sh
 
 sass css/gitty.scss > css/gitty.css
-zip app.nw index.html css/gitty.css js/*.js js/**/*.js package.json
+zip app.nw index.html css/gitty.css js/*.js js/**/*.js fonts/* package.json
