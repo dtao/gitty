@@ -8,183 +8,116 @@ function MainController($scope) {
       PWD       = process.env['PWD'],
       DIRECTORY = ARGV[0] ? path.resolve(PWD, ARGV[0]) : PWD;
 
-  window.addEventListener('load', function() {
-    var navLinks = document.querySelectorAll('body > nav > ul > li > a'),
-        mainArea = document.querySelector('body > main');
+  runCommand('git', ['status'], function(output) {
+    $scope.stage = output;
+  });
 
-    var sections = {
-      stage: {
-        init: function initStage() {
-          runCommand('git', ['status']);
-        }
-      },
+  runCommand('git', ['diff'], function(output) {
+    $scope.diff = output;
+  });
 
-      diff: {
-        init: function initDiff() {
-          runCommandThen('git', ['diff'], function(data) {
-            renderInCodeMirror(data, { mode: 'diff' });
-          });
-        }
-      },
+  runCommand('ls', [], function(output) {
+    $scope.files = output.split('\n');
+  });
 
-      files: {
-        init: function initFiles() {
-          runCommandThen('ls', [], function(data) {
-            listFiles(data.split('\n'));
-          });
-        }
-      }
-    };
+  function runCommand(command, args, callbacks) {
+    args      || (args = []);
+    callbacks || (callbacks = {});
 
-    forEach(navLinks, function(link) {
-      link.addEventListener('click', function(e) {
-        e.preventDefault();
+    if (typeof callbacks === 'function') {
+      callbacks = { stdout: callbacks };
+    }
 
-        var section = link.getAttribute('href').substring(1);
-        visitSection(section);
-      });
+    var proc = spawn(command, args, {
+      cwd: DIRECTORY
     });
 
-    function forEach(collection, fn) {
-      return Array.prototype.forEach.call(collection, fn);
-    }
+    proc.stdout.setEncoding('utf8');
+    proc.stdout.on('data', callbacks.stdout || function() {});
 
-    function peek(collection) {
-      return collection[collection.length - 1];
-    }
+    proc.stderr.setEncoding('utf8');
+    proc.stderr.on('data', callbacks.stderr || function() {});
+  }
 
-    function visitSection(section) {
-      section = sections[section];
-      mainArea.innerHTML = '';
-      section.init();
-    }
+  function listFiles(files, directory) {
+    mainArea.innerHTML = '';
 
-    function displayError(message) {
-      console.error(message);
-    }
+    var list = insertElement(mainArea, 'UL');
 
-    function insertElement(parent, name, className) {
-      var element = document.createElement(name);
-      if (className) {
-        element.className = className;
-      }
-      parent.appendChild(element);
-      return element;
-    }
-
-    function runCommandThen(command, args, callbacks) {
-      args      || (args = []);
-      callbacks || (callbacks = {});
-
-      if (typeof callbacks === 'function') {
-        callbacks = { stdout: callbacks };
+    forEach(files, function(file) {
+      // Skip blank filenames.
+      if ((/^\s*$/).test(file)) {
+        return;
       }
 
-      var proc = spawn(command, args, {
-        cwd: DIRECTORY
+      var item = insertElement(list, 'LI'),
+          link = insertElement(item, 'A');
+
+      // Yeah yeah, I know... boo hoo.
+      link.setAttribute('href', 'javascript:void(0);');
+
+      link.addEventListener('click', function() {
+        openFile(file, directory);
       });
 
-      proc.stdout.setEncoding('utf8');
-      proc.stdout.on('data', callbacks.stdout || function() {});
+      link.textContent = file;
+    });
+  }
 
-      proc.stderr.setEncoding('utf8');
-      proc.stderr.on('data', callbacks.stderr || function() {});
-    }
+  function openFile(relativePath, directory) {
+    directory || (directory = DIRECTORY);
 
-    function runCommand(command, args) {
-      runCommandThen(command, args, {
-        stdout: function(data) {
-          var pre = insertElement(mainArea, 'PRE');
-          pre.textContent = data;
-        },
+    var absolutePath = path.join(directory, relativePath);
 
-        stderr: function(data) {
-          var pre = insertElement(mainArea, 'PRE', 'error');
-          pre.textContent = data;
-        }
-      });
-    }
+    fs.stat(absolutePath, function(err, stats) {
+      if (err) {
+        displayError(err);
+        return;
+      }
 
-    function listFiles(files, directory) {
-      mainArea.innerHTML = '';
-
-      var list = insertElement(mainArea, 'UL');
-
-      forEach(files, function(file) {
-        // Skip blank filenames.
-        if ((/^\s*$/).test(file)) {
-          return;
-        }
-
-        var item = insertElement(list, 'LI'),
-            link = insertElement(item, 'A');
-
-        // Yeah yeah, I know... boo hoo.
-        link.setAttribute('href', 'javascript:void(0);');
-
-        link.addEventListener('click', function() {
-          openFile(file, directory);
-        });
-
-        link.textContent = file;
-      });
-    }
-
-    function openFile(relativePath, directory) {
-      directory || (directory = DIRECTORY);
-
-      var absolutePath = path.join(directory, relativePath);
-
-      fs.stat(absolutePath, function(err, stats) {
-        if (err) {
-          displayError(err);
-          return;
-        }
-
-        if (stats.isDirectory()) {
-          fs.readdir(absolutePath, function(err, files) {
-            if (err) {
-              displayError(err);
-              return;
-            }
-
-            listFiles(files, absolutePath);
-          });
-
-          return;
-        }
-
-        fs.readFile(absolutePath, 'utf8', function(err, text) {
+      if (stats.isDirectory()) {
+        fs.readdir(absolutePath, function(err, files) {
           if (err) {
             displayError(err);
             return;
           }
 
-          renderInCodeMirror(text, {
-            mode: guessCodeMirrorMode(absolutePath)
-          });
+          listFiles(files, absolutePath);
+        });
+
+        return;
+      }
+
+      fs.readFile(absolutePath, 'utf8', function(err, text) {
+        if (err) {
+          displayError(err);
+          return;
+        }
+
+        renderInCodeMirror(text, {
+          mode: guessCodeMirrorMode(absolutePath)
         });
       });
+    });
+  }
+
+  function renderInCodeMirror(content, options) {
+    options || (options = {});
+
+    mainArea.innerHTML = '';
+    var textarea = insertElement(mainArea, 'TEXTAREA');
+    textarea.value = content;
+
+    return CodeMirror.fromTextArea(textarea, options);
+  }
+
+  function guessCodeMirrorMode(fileName) {
+    switch (path.extname(fileName).toLowerCase()) {
+      case '.html': return 'htmlmixed';
+      case '.css': return 'css';
+      default: return 'javascript';
     }
-
-    function renderInCodeMirror(content, options) {
-      options || (options = {});
-
-      mainArea.innerHTML = '';
-      var textarea = insertElement(mainArea, 'TEXTAREA');
-      textarea.value = content;
-
-      return CodeMirror.fromTextArea(textarea, options);
-    }
-
-    function guessCodeMirrorMode(fileName) {
-      switch (path.extname(fileName).toLowerCase()) {
-        case '.html': return 'htmlmixed';
-        case '.css': return 'css';
-        default: return 'javascript';
-      }
-    }
-  });
+  }
 }
 
 MainController.$inject = ['$scope'];

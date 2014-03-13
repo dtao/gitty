@@ -32,8 +32,12 @@ h1 small {
   color: #777;
 }
 
-pre.error {
-  background-color: #fee;
+#files > ul {
+  @extend .list-group;
+
+  & > li {
+    @extend .list-group-item;
+  }
 }
 
 .CodeMirror {

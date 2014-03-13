@@ -11,6 +11,7 @@
     <script src="http://cdnjs.cloudflare.com/ajax/libs/codemirror/3.21.0/mode/css/css.js"></script>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/codemirror/3.21.0/mode/javascript/javascript.js"></script>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/codemirror/3.21.0/mode/diff/diff.js"></script>
+    <script src="js/controllers/nav_controller.js"></script>
     <script src="js/controllers/main_controller.js"></script>
     <script src="js/gitty.js"></script>
   </head>
@@ -23,14 +24,36 @@
         </h1>
     </header>
 
-    <nav>
+    <nav ng-controller="NavController">
         <ul>
-            <li><a href="#stage">Stage</a></li>
-            <li><a href="#diff">Diff</a></li>
-            <li><a href="#files">Files</a></li>
+            <li class="{{sectionClass('stage')}}">
+                <a href="#stage" ng-click="showSection('stage')">Stage</a>
+            </li>
+            <li class="{{sectionClass('diff')}}">
+                <a href="#diff" ng-click="showSection('diff')">Diff</a>
+            </li>
+            <li class="{{sectionClass('files')}}">
+                <a href="#files" ng-click="showSection('files')">Files</a>
+            </li>
         </ul>
     </nav>
 
-    <main ng-controller="MainController"></main>
+    <main ng-controller="MainController">
+        <section id="stage" ng-show="isCurrentSection('stage')">
+            <pre>{{stage}}</pre>
+        </section>
+
+        <section id="diff" ng-show="isCurrentSection('diff')">
+            <pre>{{diff}}</pre>
+        </section>
+
+        <section id="files" ng-show="isCurrentSection('files')">
+            <ul>
+                <li ng-repeat="file in files">
+                    <a href="#">{{file}}</a>
+                </li>
+            </ul>
+        </section>
+    </main>
   </body>
 </html>
