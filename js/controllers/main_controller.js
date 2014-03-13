@@ -66,6 +66,10 @@ function MainController($scope) {
       };
     });
 
+    files.sort(function(x, y) {
+      return compare(x.type, y.type) || compare(x.name, y.name);
+    });
+
     return files;
   }
 
@@ -134,6 +138,11 @@ function MainController($scope) {
       case '.css': return 'css';
       default: return 'javascript';
     }
+  }
+
+  function compare(x, y) {
+    if (x === y) return 0;
+    return x > y ? 1 : -1;
   }
 
   // Expose methods to the UI
