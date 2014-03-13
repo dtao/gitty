@@ -17,7 +17,7 @@ body > nav {
   padding: 0 15px;
 
   & > ul {
-    @extend .nav, .nav-stacked;
+    @extend .nav, .nav-pills, .nav-stacked;
   }
 }
 
@@ -26,10 +26,6 @@ body > main {
   left: 230px;
   right: 0;
   padding: 0 15px;
-}
-
-h1 small {
-  color: #777;
 }
 
 #files > ul {
