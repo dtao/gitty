@@ -1,15 +1,17 @@
 <!DOCTYPE html>
-<html>
+<html ng-app="gitty">
   <head>
     <title>Gitty</title>
     <link rel="stylesheet" type="text/css" href="http://cdnjs.cloudflare.com/ajax/libs/codemirror/3.21.0/codemirror.css" />
     <link rel="stylesheet" type="text/css" href="css/gitty.css" />
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.14/angular.min.js"></script>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/codemirror/3.21.0/codemirror.js"></script>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/codemirror/3.21.0/mode/xml/xml.js"></script>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/codemirror/3.21.0/mode/htmlmixed/htmlmixed.js"></script>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/codemirror/3.21.0/mode/css/css.js"></script>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/codemirror/3.21.0/mode/javascript/javascript.js"></script>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/codemirror/3.21.0/mode/diff/diff.js"></script>
+    <script src="js/controllers/main_controller.js"></script>
     <script src="js/gitty.js"></script>
   </head>
 
@@ -29,6 +31,6 @@
         </ul>
     </nav>
 
-    <main></main>
+    <main ng-controller="MainController"></main>
   </body>
 </html>
