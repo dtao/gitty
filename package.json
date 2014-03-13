@@ -5,6 +5,8 @@
     "codemirror": ">= 3.21.0",
     "lazy.js": ">= 0.3.2"
   },
-  "window": {
-  }
+  "devDependencies": {
+    "deft": "~0.2.0"
+  },
+  "window": {}
 }
